@@ -5,49 +5,55 @@ Time:   2021/3/14 23:47
 Ide_name:PyCharm
 """
 from openpyxl import load_workbook
-
+from common.path_file import *
+from tools.do_conf import Do_conf
+from common.G_data import Data_common
 
 class Do_excel:
-    def __init__(self,filename,sheetname):
-        self.filename=filename
-        self.sheetname=sheetname
-        self.wb=load_workbook(self.filename)
-        self.sheet=self.wb[self.sheetname]
-    def get_header(self):
-        '''获取第一行的标题行'''
-        header=[]
 
-        for line in range(1,self.sheet.max_column+1):
-            header.append(self.sheet.cell(1,line).value)
-        return header
 
-    def getdata(self,mode='all'):
-        # wb=load_workbook(filename)
-        # sheet=wb[sheetname]
+    #用静态方法获取excel表中的数据
+    @staticmethod
+    def getdata(filename):
+        wb=load_workbook(filename)
+        item = eval(Do_conf().config_data(conf_path,getattr(Data_common,'section'),getattr(Data_common,'option')))
         test_data=[]
-        header=self.get_header()
-        # header=['case_id','url','data','method']
-        # for i in range(1,sheet.max_column):
-        #     print(sheet.cell(1,i).value)
-        for i in range(2,self.sheet.max_row+1):
-            data = {}
-            for j in range(1,self.sheet.max_column):
-                data[header[j-1]]=self.sheet.cell(i,j).value
-            test_data.append(data)
-        if mode == 'all':
-            fina_data=test_data
-        else:
-            fina_data=[]
-            for item in test_data:
-                if item['case_id'] in mode:
-                    fina_data.append(item)
-        return fina_data
+        for key in item:
+            sheetname=wb[key]
+            if item[key] == 'all':
+                for i in range(2,sheetname.max_row+1):
+                    raw_data={}
+                    raw_data['case_id'] = sheetname.cell(i,1).value
+                    raw_data['url'] = sheetname.cell(i, 2).value
+                    raw_data['data'] = sheetname.cell(i, 3).value
+                    raw_data['method'] = sheetname.cell(i, 4).value
+                    raw_data['expected'] = sheetname.cell(i, 5).value
+                    raw_data['sheet_name'] = key
+                    test_data.append(raw_data)
+            else:
+                for j in item[key]:
+                    raw_data = {}
+                    raw_data['case_id'] = sheetname.cell(j+1, 1).value
+                    raw_data['url'] = sheetname.cell(j+1, 2).value
+                    raw_data['data'] = sheetname.cell(j+1, 3).value
+                    raw_data['method'] = sheetname.cell(j+1, 4).value
+                    raw_data['expected'] = sheetname.cell(j+1, 5).value
+                    raw_data['sheet_name'] = key
+                    test_data.append(raw_data)
+        return test_data
+
+    #用静态方法将数据写入文件
+    @staticmethod
+    def write_back(filename,sheet,row,column,message):
+        wb = load_workbook(filename)
+        sheetname = wb[sheet]
+        sheetname.cell(row,column).value = message
+        wb.save(filename)
+
+
+
+
 
 if __name__ == '__main__':
-    filename=r'E:\mycode\test_data\testdata.xlsx'
-    sheetname='python'
-    mode=[1,2,3]
-    td=Do_excel(filename,sheetname).getdata(mode)
-    # hd=Do_excel(filename,sheetname).get_header()
-    print(td)
-    # print(hd)
+    dd=Do_excel.getdata(data_path)
+    Do_excel.write_back(data_path,'python',6,1,111)
