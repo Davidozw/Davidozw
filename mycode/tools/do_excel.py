@@ -57,3 +57,4 @@ class Do_excel:
 if __name__ == '__main__':
     dd=Do_excel.getdata(data_path)
     Do_excel.write_back(data_path,'python',6,1,111)
+    print(dd)
