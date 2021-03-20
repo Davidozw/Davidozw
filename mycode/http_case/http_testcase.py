@@ -22,7 +22,7 @@ class Http_case(unittest.TestCase):
 
     def setUp(self):
         print('test start')
-
+#测试用例层
     def test_api(self):
         try:
             res=Http_method().http_request(self.url,self.data,'get')
